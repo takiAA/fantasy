@@ -384,6 +384,11 @@ func Golden(t *testing.T, converters []Converter) {
 			if err != nil {
 				t.Fatalf("read golden (run with -update to create): %v", err)
 			}
+			// record always writes LF, so a checkout that rewrites the golden
+			// to CRLF would mismatch on every line while the diff renders
+			// identically, which reads as the converter breaking on Windows
+			// rather than as a line-ending artifact.
+			want = []byte(strings.ReplaceAll(string(want), "\r\n", "\n"))
 			if diff := lineDiff(string(want), string(got)); diff != "" {
 				t.Errorf("golden mismatch for %s:\n%s", tc.Name, diff)
 			}
